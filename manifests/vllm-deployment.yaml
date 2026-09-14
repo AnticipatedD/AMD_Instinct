@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm-qwen-amd
+  namespace: default
+  labels:
+    infrastructure: amd-instinct-cluster
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vllm-engine
+  template:
+    metadata:
+      labels:
+        app: vllm-engine
+    spec:
+      containers:
+      - name: vllm-rocm-core
+        image: vllm/vllm-openai:latest
+        resources:
+          limits:
+            ://amd.com: "1"  # Request 1 dedicated AMD Instinct Accelerator Card
+          requests:
+            ://amd.com: "1"
+        ports:
+        - containerPort: 8000
+        env:
+        - name: MODEL
+          value: "Qwen/Qwen2.5-1.5B-Instruct"
