@@ -37,24 +37,47 @@ This repository contains production automation layers modeled directly off the *
 ## ⚙️ Kubernetes Infrastructure Installation Output (`install-kubernetes.sh`)
 ```text
 ==========================================================
+[INFO] Starting structural Kubernetes ==========================================================
 [INFO] Starting structural Kubernetes installation pipeline...
 ==========================================================
-[INFO] Evaluating core platform system execution limits...
-[SUCCESS] OS Profile Tracked: Termux Shell Environment Base
-[SUCCESS] Requirement verified: curl utility found
-[SUCCESS] Requirement verified: wget utility found
-[SUCCESS] Requirement verified: apt-get utility found
-[SUCCESS] Memory scan complete: 3GB detected on node
-[SUCCESS] System architecture prerequisites audit finished.
-[INFO] Scanning system layer files for package manager locks...
-[SUCCESS] Checking for package manager locks... No locks detected
-[INFO] Configuring container runtime environment bounds...
-[INFO] Installing containerd container runtime...
-[INFO] Writing default configuration path layout file: /etc/containerd/config.toml
-[INFO] Setting SystemdCgroup = true matching Kubernetes best practices...
-[SUCCESS] containerd engine configured and running successfully.
-[INFO] Orchestrating Calico CNI overlay components...
-[INFO] Executing local tracking manifest: kubectl create -f custom-resources.yaml
+[INFO] Scanning package manager requirements and repository keys...
+[INFO] Installing prerequisite binaries: cri-tools kubadm kubelet kubectl kubernetes-cni
+[SUCCESS] Kubernetes component core layers installed successfully.
+[INFO] Restarting core service daemons to enforce new cluster profiles...
+  -> systemctl restart systemd-logind.service
+  -> systemctl restart unattended-upgrades.service
+  -> systemctl restart containerd.service
+[WARNING] kubelet is not running, starting daemon...
+[INFO] kubelet will start automatically during cluster initialization.
+[INFO] Initializing Kubernetes control-plane node configuration matrices...
+  - Using control plane node IP endpoint host: 10.111.192.210
+  - Running master init configuration with parameters:
+      --apiserver-advertise-address=10.111.192.210
+      --pod-network-cidr=192.168.0.0/16
+      --node-name=gpu-mi300x-node-1
+      --ignore-preflight-errors=NumCPU
+[INFO] Running pre-flight structural sanity assertions...
+[INFO] Pulling required control plane container image registries...
+  [preflight] This processing operation might take a couple minutes depending on bandwidth...
+[SUCCESS] Kubeadm environment control configurations successfully established.
+[INFO] Installing Calico Container Network Interface (CNI) via Tigera Operator...
+  -> namespace/tigera-operator created
+  -> customresourcedefinition.apiextensions.k8s.io/bgpconfigurations.crd.projectcalico.org created
+  -> customresourcedefinition.apiextensions.k8s.io/bgpfilters.crd.projectcalico.org created
+  -> customresourcedefinition.apiextensions.k8s.io/bgppeers.crd.projectcalico.org created
+  -> customresourcedefinition.apiextensions.k8s.io/ippools.crd.projectcalico.org created
+  -> serviceaccount/tigera-operator created
+  -> clusterrole.rbac.authorization.k8s.io/tigera-operator created
+  -> deployment.apps/tigera-operator created
+[INFO] Waiting for tigera-operator pod status to enter Ready states...
+[INFO] Applying tracking configuration rules: kubeadm create -f custom-resources.yaml
+[SUCCESS] Calico system network operator interfaces deployed successfully.
+[INFO] Verifying cluster connectivity immediately.
+..
+[SUCCESS] Cluster connectivity verified! Single-node system optimization completed.
+
+[SUCCESS] Kubernetes deployment pipeline completed successfully!
+==========================================================
 
 +---------------------------------------+
 
