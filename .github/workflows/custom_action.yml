@@ -1,0 +1,13 @@
+name: Build & Test
+on: push
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Environment
+        uses: org/actions/setup-env@v1
+        with:
+          node-version: '16'
+         checkout - name: Checkout Repository
+  uses: actions/checkout@v4
