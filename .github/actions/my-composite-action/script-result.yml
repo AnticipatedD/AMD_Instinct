@@ -1,0 +1,27 @@
+outputs:
+  script-result:
+    description: "Result from the script"
+    value: ${{ steps.run-script.outputs.result }}
+
+runs:
+  using: "composite"
+  steps:
+    - id: run-script
+      run: echo "result=Success" >> $GITHUB_OUTPUT
+      shell: bash 
+
+  jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run composite action
+        id: my-action
+        uses: ./.github/actions/my-composite-action
+
+      - name: Display result
+        run: echo "Script Result: ${{ steps.my-action.outputs.script-result }}"
+        
+   my-repository/
+├── .github/
+│   ├── actions/
+│   │   ├── my-cli-action/
