@@ -1,0 +1,11 @@
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+ name: Install MyCLI
+        uses: ./.github/actions/my-cli-action
+        with:
+          version: '1.2.3'
