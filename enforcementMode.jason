@@ -1,0 +1,26 @@
+{
+  "if": {
+    "allOf": [
+      {
+        "value": "[resourceGroup().name]",
+        "like": "*netrq"
+      },
+      {
+        "field": "type",
+        "notLike": "Network/*"
+      }
+    ]
+  },
+  "then": {
+    "effect": "deny",
+    "details": {
+      "count": {
+        "field": "Microsoft.Network/virtualNetworks/addressSpace.addressPrefixes[*]",
+        "where": {
+          "value": "[ipRangeContains('10.0.0.0/24', current('Microsoft.Network/virtualNetworks/addressSpace.addressPrefixes[*]'))]",
+          "equals": "greater"
+        }
+      }
+    }
+  }
+}
