@@ -1,0 +1,9 @@
+name: Reusable CI Pipeline
+on: push
+jobs:
+  test:
+    uses: org/reusable-workflows/.github/workflows/ci-pipeline.yml@v1
+    with:
+      node-version: '16'
+    secrets:
+      npm-token: ${{ secrets.NPM_TOKEN }}
