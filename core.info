@@ -1,0 +1,94 @@
+const core = require('@actions/core');
+
+core.info("This is an info message");
+core.debug("This is a debug message");
+console.log("This is a raw console log");
+
+---
+### Enable debug logging
+`ACTIONS_STEP_DEBUG=true`
+To enable runner diagnostic logs, set:
+`ACTIONS_RUNNER_DEBUG=true`
+
+### Inspect workflow logs
+When a workflow fails, click on the failed job in the Actions tab. Expand each step to:
+
+View detailed logs
+Check standard output (stdout)
+See the exit code of scripts
+Identify unhandled exceptions
+🔍 Example log Output
+```
+Error: Cannot find module '@actions/core'
+Require stack:
+- /home/runner/work/_actions/my-org/my-action/index.js
+``` 
+
+✅ Fix: Run npm install @actions/core and commit node_modules (or use ncc to bundle the action).
+
+Test my action locally
+Use act — a CLI tool to run GitHub Actions locally. Example:
+`act -j test` 
+
+🛠 Make sure to simulate your GitHub environment properly when testing locally.
+
+Handle errors gracefully
+Catch exceptions and fail with helpful messages:
+```
+try {
+  // my logic
+} catch (error) {
+  core.setFailed(`Action failed with error: ${error.message}`);
+}
+```
+
+### Debugging techniques
+1. Add Logging
+Use echo, printf, or logging statements in your entrypoint script:
+echo "Starting Docker action..."
+echo "Input VALUE: $INPUT_VALUE" 
+2. Build and test locally
+Use Docker on my machine to simulate the container behavior:
+```bash 
+docker build -t my-action .
+docker run -e INPUT_NAME=value my-action
+Ensure environment variables mimic the ones GitHub sets.
+
+3. Use the act CLI to simulate GitHub workflows
+Install act to run my GitHub workflows locally:
+act -j test-job
+
+Great for testing Docker actions in workflows without pushing to GitHub.
+
+4. Validate Dockerfile configuration
+Ensure about my define either ENTRYPOINT or CMD. Copy my scripts into the image and give them execute permission:
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
+5. Inspect GitHub logs
+Click on a failed workflow run, expand each step, and examine:
+
+Docker build logs
+Standard output and standard error from the container
+Exit codes and stack traces 🔍 Logs often reveal missing packages, syntax issues, or permission errors.
+Example: Entry point error
+Error: container_linux.go:380: starting container process caused "exec: \"/entrypoint.sh\": permission denied"
+
+✅ Fix: Add RUN chmod +x /entrypoint.sh in your Dockerfile.
+
+Environment variable mapping
+```bash 
+echo "Input was $INPUT_NAME"
+echo "Working dir: $GITHUB_WORKSPACE"
+
+Here are some examples of each option.
+steps:
+    - uses: actions/javascript-action@v1
+    - uses: actions/javascript-action@v1.0.1
+    - uses: actions/javascript-action@v1-beta
+
+If we're using the commit's SHA for release management, we need to use the full SHA value and not the abbreviated value.
+steps:
+    - uses: actions/javascript-action@2522385f6f7ba04fe7327647b213799853a8f55c
+
+![Publish an action to the GitHub Marketplace](github-actions-media-marketplace.jpg)
