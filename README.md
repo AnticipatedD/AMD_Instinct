@@ -1,6 +1,19 @@
-# Orchestrating vLLM Inference Services on AMD Instinct™ GPUs with Kubernetes
+# AMD Instinct™ Orchestrating vLLM Inference Services on GPUs with Kubernetes
 
 An enterprise-grade reference architecture for automated multi-node cluster provisioning, Layer-2 networking load-balancing, and high-throughput LLM serving (`vLLM`) optimized over **AMD Instinct™ MI300X CDNA3** acceleration systems.
+
+<div align="center">
+  
+![AMD](https://img.shields.io/badge/AMD-Skills-ED1C24?logo=amd&logoColor=white)
+![ROCm](https://img.shields.io/badge/ROCm-Enabled-green)
+![Ryzen AI](https://img.shields.io/badge/Ryzen_AI-Ready-1F6FEB)
+![Agent Skills](https://img.shields.io/badge/Agent_Skills-Standard-7B2D8E)
+[![Cursor](https://img.shields.io/badge/Cursor-Compatible-000000?logo=cursor&logoColor=white)](https://cursor.com)
+[![Claude Code](https://img.shields.io/badge/Claude_Code-Compatible-F07535?logo=claude&logoColor=white)](https://www.anthropic.com/claude-code)
+[![Gemini CLI](https://img.shields.io/badge/Gemini_CLI-Compatible-4285F4?logo=googlegemini&logoColor=white)](https://ai.google.dev/gemini-api/docs)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
+<img src="assets/banner.gif" alt="AMD Skills"/>
 
 ## 🗺️ Reference System Architecture
 
