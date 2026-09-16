@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  lemonade-mi300x-backend:
+    # Utilizing the highly optimized main dev stream image containing explicit Instinct tuning maps
+    image: rocm/vllm-dev:main
+    container_name: lemonade-mi300x-server
+    network_mode: host # Bypasses virtual network bridges for rapid multi-GPU/node connection loops
+    ports:
+      - "8000:8000"
+    
+    environment:
+      - HF_TOKEN=${HF_TOKEN}
+      
+      # --- Hardware Visibility Control ---
+      # Explicitly bind to specific MI300X OAM modules. 
+      # Examples: "0" (Single GPU), "0,1,2,3" (4-GPU Cluster), "0,1,2,3,4,5,6,7" (Full 8-GPU node)
+      - ROCR_VISIBLE_DEVICES=0,1,2,3
+      
+      # --- ROCm & PyTorch Math Kernels Performance Optimizations ---
+      - HIP_FORCE_DEV_KERNARG=1       # Lowers kernel launch overhead for device arguments
+      - SAFETENSORS_FAST_GPU=1        # Bypasses host memory copies during model tensor initialization
+      - TORCH_BLAS_PREFER_HIPBLASLT=1 # Forces high-performance linear operations on FP16/FP8 matrix cores
+      
+      # --- RCCL Distributed Interconnect Tuning (For Multi-GPU sharding) ---
+      # Scales up communication pathways across the internal high-speed XGMI interconnect layers
+      - NCCL_MIN_NCHANNELS=112        
+
+    # Hardware path routing to interface directly with the AMD HSA stack kernel components
+    devices:
+      - /dev/kfd:/dev/kfd
+      - /dev/dri:/dev/dri
+      - /dev/mem:/dev/mem
+      
+    # Low-level system access arrays for performance management utilities
+    cap_add:
+      - SYS_PTRACE
+      - CAP_SYS_ADMIN
+    group_add:
+      - video
+      - render
+    security_opt:
+      - seccomp:unconfined
+    
+    # Critical memory bounds config to avoid host execution abort signals during continuous batching
+    ipc: host
+    shm_size: '64gb' 
+    
+    volumes:
+      - ~/.cache/huggingface:/root/.cache/huggingface
+      # Optional: mount a low-latency scratch storage directory for fast local weight loading
+      # - /mnt/nvme-pool/models:/data/models 
+    
+    # Engine execution optimization payload matching the MI300X execution matrices
+    command: >
+      vllm serve Qwen/Qwen3-Coder-30B-A3B-Instruct
+      --port 8000
+      --trust-remote-code
+      --max-model-len 16384
+      --chat-template tool_use
+      --gpu-memory-utilization 0.95
+      --tensor-parallel-size 4
+      --block-size 16
+      --enable-chunked-prefill
+    
+    restart: unless-stopped
