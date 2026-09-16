@@ -1,3 +1,5 @@
-openai>=1.0.0
-transformers>=4.40.0
-torch>=2.0.0
+openai==1.58.1
+transformers==4.47.1
+torch==2.5.1
+pytest==8.3.4
+ruff==0.8.4
