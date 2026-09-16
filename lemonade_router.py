@@ -1,21 +1,26 @@
+import os
 import json
 from typing import Callable, Dict, List, Any
 from openai import OpenAI
 
 class LemonadeRouterBuilder:
-    def __init__(self, api_key: str = "ollama/lemonade", base_url: str = "http://localhost:11434/v1"):
+    def __init__(self):
         """
-        Initializes the router builder targeting Qwen3-Coder-30B-A3B-Instruct.
+        Initializes the router builder targeting a Qwen3-Coder local engine 
+        running on top of the AMD ROCm software platform infrastructure.
         """
-        self.client = OpenAI(api_key=api_key, base_url=base_url)
-        # Using the standard model tag for local deployment instances
-        self.model_name = "mdq100/Qwen3-Coder-30B-A3B-Instruct:30b"
+        # Connects directly to the ROCm-accelerated vLLM / SGLang local endpoint
+        self.api_url = os.getenv("ROCM_ENGINE_URL", "http://localhost:8000/v1")
+        self.client = OpenAI(api_key="EMPTY-ROCM-POOL", base_url=self.api_url)
+        
+        # Target identifier matching your local container model allocation
+        self.model_name = "Qwen3-Coder-30B-A3B-Instruct"
         self.tools: List[Dict[str, Any]] = []
         self.tool_registry: Dict[str, Callable] = {}
 
     def register_tool(self, name: str, description: str, parameters: dict, func: Callable):
         """
-        Registers a function tool that the router can invoke dynamically.
+        Registers structural software modules that the agent can route instructions to.
         """
         tool_definition = {
             "type": "function",
@@ -28,74 +33,88 @@ class LemonadeRouterBuilder:
         self.tools.append(tool_definition)
         self.tool_registry[name] = func
 
-    def route_and_execute(self, user_prompt: str) -> str:
+    def route_and_execute(self, user_prompt: str, temperature: float = 0.7) -> dict:
         """
-        Routes the user intent to the correct function or direct text output.
+        Executes intent routing with GPU acceleration via HIP-optimized engine layers.
         """
-        messages = [{"role": "user", "content": user_prompt}]
+        messages = [
+            {
+                "role": "system", 
+                "content": "You are a precise enterprise router agent. Evaluate input instructions and dispatch them to the correct function tool matching the objective."
+            },
+            {"role": "user", "content": user_prompt}
+        ]
         
-        # Qwen3-Coder excels at tool calling with 0.7 temperature configurations
-        response = self.client.chat.completions.create(
-            model=self.model_name,
-            messages=messages,
-            tools=self.tools if self.tools else None,
-            tool_choice="auto" if self.tools else None,
-            temperature=0.7,
-            top_p=0.8
-        )
-        
-        response_message = response.choices[0].message
-        
-        # Check if the model decided to route execution to a tool
-        if response_message.tool_calls:
-            for tool_call in response_message.tool_calls:
-                function_name = tool_call.function.name
-                function_args = json.loads(tool_call.function.arguments)
+        try:
+            # Leveraging structural tool-calling capabilities optimized on Qwen3-Coder weights
+            response = self.client.chat.completions.create(
+                model=self.model_name,
+                messages=messages,
+                tools=self.tools if self.tools else None,
+                tool_choice="auto" if self.tools else None,
+                temperature=temperature,
+                top_p=0.85
+            )
+            
+            response_message = response.choices[0].message
+            
+            # Check for structured tool routing calls triggered by the model
+            if response_message.tool_calls:
+                execution_logs = []
+                for tool_call in response_message.tool_calls:
+                    func_name = tool_call.function.name
+                    func_args = json.loads(tool_call.function.arguments)
+                    
+                    if func_name in self.tool_registry:
+                        # Direct route dispatch execution
+                        runtime_output = self.tool_registry[func_name](**func_args)
+                        execution_logs.append(f"[Route Target: {func_name}] Executed successfully. Output: {runtime_output}")
+                    else:
+                        execution_logs.append(f"[Route Error] Tool '{func_name}' found in weights path but missing in application registry.")
                 
-                if function_name in self.tool_registry:
-                    # Execute the matched route function
-                    route_output = self.tool_registry[function_name](**function_args)
-                    return f"[Route Executed: {function_name}] Output: {route_output}"
-                
-        return f"[Direct Fallback Route] Response: {response_message.content}"
+                return {"status": "success", "result": "\n".join(execution_logs)}
+            
+            # Text fallback mode if no structural routes match the input criteria
+            return {"status": "success", "result": f"[Direct Fallback Route] {response_message.content}"}
+            
+        except Exception as e:
+            return {"status": "error", "result": f"[Kernel/API Connection Error] Routing phase failed: {str(e)}"}
 
-# --- Example Usage ---
+# --- Verification & Application Bridge Testing ---
 if __name__ == "__main__":
-    # Define placeholder mock services to route between
-    def get_code_syntax_checker(repo_path: str):
-        return f"Repository '{repo_path}' passed Qwen3 lint checks."
+    # Mock system commands to verify infrastructure routing
+    def execute_hip_compilation(kernel_name: str):
+        return f"ROCm compiler (hipcc) compiled kernel path: '{kernel_name}.hip.cpp' matching hardware target."
 
-    def deploy_to_production(environment: str):
-        return f"Successfully routed code artifact to {environment} layer."
+    def profile_gpu_metrics(device_id: int):
+        return f"rocm-smi metrics gathered for Device [{device_id}]. Matrix operations balanced across CDNA/RDNA layout."
 
-    # Initialize router builder
+    # Instantiate the engine
     router = LemonadeRouterBuilder()
-
-    # Register routes with schemas
+    
+    # Register core pipeline capabilities
     router.register_tool(
-        name="verify_repository",
-        description="Run linting and syntax validations on local codebases",
+        name="hip_compile",
+        description="Compile standard HIP source code codebases to executable GPU binaries",
         parameters={
             "type": "object",
-            "properties": {"repo_path": {"type": "string"}},
-            "required": ["repo_path"]
+            "properties": {"kernel_name": {"type": "string"}},
+            "required": ["kernel_name"]
         },
-        func=get_code_syntax_checker
+        func=execute_hip_compilation
     )
-
+    
     router.register_tool(
-        name="trigger_deployment",
-        description="Deploy software modifications to staging or production targets",
+        name="profile_hardware",
+        description="Query system state, memory allocation, and active execution loops via rocm-smi",
         parameters={
             "type": "object",
-            "properties": {"environment": {"type": "string"}},
-            "required": ["environment"]
+            "properties": {"device_id": {"type": "integer"}},
+            "required": ["device_id"]
         },
-        func=deploy_to_production
+        func=profile_gpu_metrics
     )
 
-    # Test the agentic routing capabilities
-    test_prompt = "Everything looks clean, please trigger a deployment to production right now."
-    print("Routing instruction...")
-    result = router.route_and_execute(test_prompt)
-    print(result)
+    # Test execution
+    test_run = router.route_and_execute("Check performance configurations and profile metrics for device 0 immediately.")
+    print(test_run["result"])
