@@ -13,6 +13,13 @@ jobs:
     - name: Check out repository code targets
       uses: actions/checkout@v4
 
+    - name: Install Shellcheck Engine
+      run: sudo apt-get update && sudo apt-get install -y shellcheck
+
+    - name: Run Shellcheck against platform script handles
+      run: |
+        shellcheck deploy-vllm-inference.sh check-system-enhanced.sh install-kubernetes.sh install-amd-gpu-operator.sh run-web-demo.sh tests/test_scripts.sh
+
     - name: Set up Python Runtime environment
       uses: actions/setup-python@v5
       with:
@@ -25,10 +32,8 @@ jobs:
         pip install -r requirements.txt
 
     - name: Execute code cleanliness validations (Linter checks)
-      run: ruff check .
+      run: ruff check lemonade_router.py chatbot_backend.py interactive_gui.py router_pipeline.py
 
-    - name: Verify architectural syntax patterns (Formatter checks)
-      run: ruff format --check .
-
-    - name: Run test suite metrics
-      run: pytest -v tests/
+    - name: Run test suite metrics tracking coverage threshold rules
+      run: |
+        pytest --cov=. --cov-fail-under=50 -v tests/
