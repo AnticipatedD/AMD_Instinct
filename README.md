@@ -35,43 +35,44 @@ An enterprise-grade reference architecture for automated multi-node cluster prov
 | **Inference Service Unreachable** | `kubectl get svc -A` | Validate Layer-2 address pooling metrics. Ensure external routing allocations do not conflict with active gateways. |
 | **Model Loading Disconnects** | `kubectl get pvc --all-namespaces` | Ensure storage volume paths match local directories (/mnt/data/ai-models) and access permissions are configured. |
 | **OOM Killed Containers / Crashes** | `kubectl node-shell <node>` | Cluster hardware hitting RAM ceiling limits. Downscale runtime flags or upgrade limits inside container boundary resources. |
+
+---
+
 # AMD Instinct GPU Orchestration & Inference Routing Framework
 
-An enterprise-grade, high-throughput environment for scaling inference workloads using `Qwen3-Coder-30B-A3B-Instruct` across localized AMD Instinct hardware installations (CDNA architectures, including the MI300X series) via AMD ROCm software layers.
+An enterprise production environment for running optimized inference workloads with the `Qwen3-Coder-30B-A3B-Instruct` model across AMD Instinct hardware footprints (CDNA modules, including the MI300X series) via AMD ROCm software environments.
 
 ## ⚡ Quickstart & Installation
 
-Ensure you have mapped your core drivers (`/dev/kfd` and `/dev/dri`) before bootstrapping local application clusters.
+Ensure you have mapped your core devices (`/dev/kfd` and `/dev/dri`) before bootstrapping local application clusters.
 
 ```bash
-# Clone and verify the local operational dependencies footprint
+# Clone the repository
 git clone https://github.com
 cd AMD_Instinct
 
 # Install project dependencies with exact lockfile values
 pip install -r requirements.txt
 
-# Run linting validations and verify core infrastructure health parameters
-python manage_infra.py --verify
-```
-
-## 🏗️ Execution Architecture
-
-This repository operates an automated intent router that manages traffic based on prompt structures:
-1. **Frontend Request Engine Layer** (`router_dashboard.html` / `router_agent.js`) collects optimization intents.
-2. **Core Router Dispatch Processing Loop** (`lemonade_router.py`) evaluates prompt intents using token functions.
-3. **Hardware Execution Cluster** balances tasks across multi-GPU setups using native high-precision operations (BF16) or high-throughput quantization configurations (PTPC-FP8).
-
-```bash
-# Launch the integration testing loops manually
+# Run the complete automated verification test suite locally
 pytest -v tests/
 ```
 
+## 🏗️ Repository Module Breakdown
+
+* `manifests/`: High-performance Kubernetes blueprints managing state configurations natively without runtime construction mutations.
+  * `metallb-config.yaml`: Network routing and cluster load balancing configuration.
+  * `model-storage.yaml`: Persistent volume configuration targeting high-performance storage blocks.
+  * `vllm-deployment.yaml`: Deployment profile allocating model parameters to active GPU devices.
+* `lemonade_router.py`: Core intent router module utilizing structured tool-calling pipelines.
+* `chatbot_backend.py`: Session context builder and inference parameter configuration profile.
+* `tests/`: High-impact verification test matrices managing cluster state simulations and software layers in isolation.
+
 ## 🔐 Environment Matrix Parameters
 
-Configure the following environment flags in your deployment profile to bypass standard safety fallbacks securely:
+Configure your system variables by creating a `.env` file based on `.env.example`. Do not commit credentials directly to the repository history.
 
-* `LEMONADE_API_KEY`: The authorization token used for local runtime validation checking.
+* `ROCM_API_KEY`: The authorization token used for local runtime validation checking.
 * `ROCM_ENGINE_URL`: The endpoint path pointing to your active vLLM tensor compilation server instances (defaults to `http://localhost:8000/v1`).
 
 ---
