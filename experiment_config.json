@@ -1,0 +1,14 @@
+{
+  "experiment_id": "exp_rocm_vllm_baseline_001",
+  "seed": 42,
+  "model_parameters": {
+    "temperature": 0.7,
+    "top_p": 0.95,
+    "max_tokens": 512,
+    "seed": 42
+  },
+  "baselines": {
+    "latency_p95_ms": 120.0,
+    "throughput_tok_sec": 45.2
+  }
+}
