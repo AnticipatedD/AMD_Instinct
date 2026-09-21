@@ -1,6 +1,6 @@
 openai>=1.12.0
 torch>=2.2.0
-transformers>=4.38.0
+transformers>=5.17.0
 pykube-ng>=23.6.0
 structlog>=24.1.0
 python-json-logger>=2.0.7
