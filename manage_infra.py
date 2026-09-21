@@ -1,10 +1,12 @@
 import subprocess
 import shutil
+import structlog
 import logging
 import sys
 from typing import List
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+# structlog active
+structlog.configure()level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("InfraManager")
 
 def verify_rocm_environment() -> bool:
