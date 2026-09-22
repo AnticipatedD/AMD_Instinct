@@ -1,24 +1,35 @@
-# AMD Instinct™ Orchestrating vLLM Inference Services on GPUs with Kubernetes
+# AMD Instinct™ Orchestrating vLLM # AMD Instinct™ Inference Routing & Infrastructure Framework
 
-An enterprise-grade reference architecture for automated multi-node cluster provisioning, Layer-2 networking load-balancing, and high-throughput LLM serving (`vLLM`) optimized over **AMD Instinct™ MI300X CDNA3** acceleration systems.
+A focused Python and Kubernetes reference framework for routing inference workloads and orchestrating service verification over AMD ROCm and Instinct™ hardware environments.
 
 <div align="center">
   
 ![AMD](https://img.shields.io/badge/AMD-Skills-ED1C24?logo=amd&logoColor=white)
 ![ROCm](https://img.shields.io/badge/ROCm-Enabled-green)
-![Ryzen AI](https://img.shields.io/badge/Ryzen_AI-Ready-1F6FEB)
-![Agent Skills](https://img.shields.io/badge/Agent_Skills-Standard-7B2D8E)
-[![Cursor](https://img.shields.io/badge/Cursor-Compatible-000000?logo=cursor&logoColor=white)](https://cursor.com)
-[![Claude Code](https://img.shields.io/badge/Claude_Code-Compatible-F07535?logo=claude&logoColor=white)](https://www.anthropic.com/claude-code)
-[![Gemini CLI](https://img.shields.io/badge/Gemini_CLI-Compatible-4285F4?logo=googlegemini&logoColor=white)](https://ai.google.dev/gemini-api/docs)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-<img src="assets/banner.gif" alt="AMD Skills"/>
+</div>
 
+---
+
+## ⚡ Quickstart & Installation
+
+Ensure your system has Python and pip available, then clone and install the pinned dependencies:
+
+```bash
+# Clone the repository
+git clone [https://github.com/AnticipatedD/AMD_Instinct.git](https://github.com/AnticipatedD/AMD_Instinct.git)
+cd AMD_Instinct
+
+# Install project dependencies
+`pip install -r requirements-lock.txt`
+
+# Run the complete test suite locally
+`pytest -v tests/`
+```
 
 ## 🗺️ Reference System Architecture
 
-```text
 [ Client API Tunnels ] ──► [ Secure SSH Port Forward: 5000 ]
                                │
                                ▼
@@ -35,7 +46,6 @@ An enterprise-grade reference architecture for automated multi-node cluster prov
                                ▼
             [ AMD GPU Operator / ROCm Device Plugin ]
 
----
 
 ## 🛠️ Production Monitoring & Troubleshooting Runbook
 
@@ -52,20 +62,7 @@ An enterprise-grade reference architecture for automated multi-node cluster prov
 
 An enterprise production environment for running optimized inference workloads with the `Qwen3-Coder-30B-A3B-Instruct` model across AMD Instinct hardware footprints (CDNA modules, including the MI300X series) via AMD ROCm software environments.
 
-## ⚡Quickstart & Installation
 
-Ensure you have mapped your core devices (`/dev/kfd` and `/dev/dri`) before bootstrapping local application clusters.
-```bash
-# Clone the repository
-git clone https://github.com
-cd AMD_Instinct
-
-# Install project dependencies with exact lockfile values
-`pip install -r requirements.txt`
-
-# Run the complete automated verification test suite locally
-`pytest -v tests/`
-```
 ## 🏗️ Repository Module Breakdown:
 
 - `​lemonade_router.py`: Core routing engine utilizing structured OpenAI-compatible tool-calling pipelines and runtime parameter validation.
