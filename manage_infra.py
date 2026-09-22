@@ -5,8 +5,8 @@ import logging
 import sys
 from typing import List
 
-# structlog active
-structlog.configure()level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+# Logging configuration
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("InfraManager")
 
 def verify_rocm_environment() -> bool:
