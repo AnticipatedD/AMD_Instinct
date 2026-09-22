@@ -5,8 +5,8 @@ import logging
 from typing import Callable, Dict, List, Any, Optional
 from openai import OpenAI
 
-# structlog active
-structlog.configure()level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+# Logging configuration
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger("LemonadeRouter")
 
 class LemonadeRouterBuilder:
