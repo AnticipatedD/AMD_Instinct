@@ -1,24 +1,36 @@
 import os
 import json
-import structlog
 from typing import Callable, Dict, List, Any, Optional
 from openai import OpenAI
 from pydantic import BaseModel, ValidationError
 
-# Structured logger
-import logging, structlog
+import logging
+import structlog
+
+# Configure standard logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
+# Configure structlog to respect INFO level
 structlog.configure(
     wrapper_class=structlog.make_filtering_bound_logger(logging.INFO)
 )
+
+logger = structlog.get_logger()
+
 
 class RouteRequest(BaseModel):
     prompt: str
     temperature: float
 
+
 class ToolDefinition(BaseModel):
     name: str
     description: str
     parameters: Dict[str, Any]
+
 
 class LemonadeRouterBuilder:
     def __init__(self, base_url: Optional[str] = None):
