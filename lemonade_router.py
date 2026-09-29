@@ -6,19 +6,19 @@ from openai import OpenAI
 from pydantic import BaseModel, ValidationError
 
 # Structured logger
-logger = structlog.get_logger()
-
+import logging, structlog
+structlog.configure(
+    wrapper_class=structlog.make_filtering_bound_logger(logging.INFO)
+)
 
 class RouteRequest(BaseModel):
     prompt: str
     temperature: float
 
-
 class ToolDefinition(BaseModel):
     name: str
     description: str
     parameters: Dict[str, Any]
-
 
 class LemonadeRouterBuilder:
     def __init__(self, base_url: Optional[str] = None):
