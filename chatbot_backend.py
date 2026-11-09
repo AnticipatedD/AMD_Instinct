@@ -1,3 +1,5 @@
+import json
+from pathlib import Path
 from typing import Dict, List, Any
 import structlog
 from pydantic import BaseModel, ValidationError
@@ -20,9 +22,24 @@ class ChatbotBackendManager:
     def __init__(
         self,
         system_prompt: str = "You are an advanced platform expert guiding cluster operations.",
+        config_path: str = "experiment_config.json",
     ):
         self.system_prompt = system_prompt
         self.tools: List[ToolDefinition] = []
+        self.experiment_config = self._load_experiment_config(config_path)
+
+    def _load_experiment_config(self, config_path: str) -> Dict[str, Any]:
+        """Loads experiment configuration parameters for runtime consumption."""
+        path = Path(config_path)
+        if path.exists():
+            try:
+                with open(path, "r") as f:
+                    config = json.load(f)
+                    logger.info("experiment_config_loaded", path=config_path)
+                    return config
+            except Exception as e:
+                logger.error("experiment_config_load_failed", error=str(e))
+        return {}
 
     def create_initial_conversation(self, initial_user_input: str) -> List[Dict[str, str]]:
         """Constructs structurally sound conversation arrays pinning structural frames."""
@@ -37,13 +54,34 @@ class ChatbotBackendManager:
         return conversation
 
     def get_sampling_params(self, runtime_mode: str = "precise") -> Dict[str, Any]:
-        """Maps token profile variables matching deterministic execution patterns."""
+        """Maps token profile variables matching deterministic execution patterns, incorporating experiment config."""
+        model_params = self.experiment_config.get("model_parameters", {})
+        default_seed = self.experiment_config.get("seed", 42)
+
         if runtime_mode == "precise":
-            params = {"temperature": 0.0, "top_p": 0.1, "max_tokens": 1024, "presence_penalty": 0.0}
+            params = {
+                "temperature": model_params.get("temperature", 0.0),
+                "top_p": model_params.get("top_p", 0.1),
+                "max_tokens": model_params.get("max_tokens", 1024),
+                "presence_penalty": 0.0,
+                "seed": default_seed,
+            }
         elif runtime_mode == "creative":
-            params = {"temperature": 0.8, "top_p": 0.9, "max_tokens": 2048, "presence_penalty": 0.3}
+            params = {
+                "temperature": 0.8,
+                "top_p": 0.9,
+                "max_tokens": 2048,
+                "presence_penalty": 0.3,
+                "seed": default_seed,
+            }
         else:
-            params = {"temperature": 0.7, "top_p": 0.85, "max_tokens": 1024, "presence_penalty": 0.0}
+            params = {
+                "temperature": model_params.get("temperature", 0.7),
+                "top_p": model_params.get("top_p", 0.85),
+                "max_tokens": model_params.get("max_tokens", 1024),
+                "presence_penalty": 0.0,
+                "seed": default_seed,
+            }
         logger.info("sampling_params_selected", runtime_mode=runtime_mode, params=params)
         return params
 
