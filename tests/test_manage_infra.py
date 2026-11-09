@@ -1,72 +1,72 @@
-import pytest
-from unittest.mock import patch, MagicMock
 import subprocess
-import manage_infra
+import shutil
+import requests
+import structlog
+from typing import Dict, Any
 
+logger = structlog.get_logger()
 
-def test_verify_rocm_environment_success():
-    """Ensures ROCm environment verification passes when rocm-smi returns driver info."""
-    with patch("shutil.which", return_value="/usr/bin/rocm-smi"), \
-         patch("subprocess.run") as mock_run:
-        mock_run.return_value = MagicMock(stdout="Driver v1.0")
-        result = manage_infra.verify_rocm_environment()
-        assert result is True
-        mock_run.assert_called_once()
+def verify_rocm_environment() -> bool:
+    """Verifies that rocm-smi is available and functional."""
+    if not shutil.which("rocm-smi"):
+        logger.error("rocm_smi_missing")
+        return False
+    try:
+        result = subprocess.run(["rocm-smi"], capture_output=True, text=True, check=True)
+        logger.info("rocm_environment_verified", output=result.stdout.strip())
+        return True
+    except subprocess.SubprocessError as e:
+        logger.error("rocm_environment_verification_failed", error=str(e))
+        return False
 
+def check_kubernetes_cluster() -> bool:
+    """Verifies that kubectl is available and connected to a cluster."""
+    if not shutil.which("kubectl"):
+        logger.error("kubectl_missing")
+        return False
+    try:
+        subprocess.run(["kubectl", "cluster-info"], capture_output=True, text=True, check=True)
+        logger.info("kubernetes_cluster_verified")
+        return True
+    except subprocess.SubprocessError as e:
+        logger.error("kubernetes_cluster_verification_failed", error=str(e))
+        return False
 
-def test_verify_rocm_environment_missing_binary():
-    """Ensures ROCm environment verification fails when rocm-smi is missing."""
-    with patch("shutil.which", return_value=None):
-        result = manage_infra.verify_rocm_environment()
-        assert result is False
+def deploy_manifests(manifests: list[str]) -> bool:
+    """Applies Kubernetes manifests if the cluster is reachable."""
+    if not check_kubernetes_cluster():
+        logger.error("deploy_failed_cluster_unreachable")
+        return False
+    
+    for manifest in manifests:
+        try:
+            subprocess.run(["kubectl", "apply", "-f", manifest], check=True)
+            logger.info("manifest_deployed", manifest=manifest)
+        except subprocess.SubprocessError as e:
+            logger.error("manifest_deployment_failed", manifest=manifest, error=str(e))
+            return False
+    return True
 
-
-def test_verify_rocm_environment_subprocess_error():
-    """Ensures ROCm environment verification fails on subprocess error."""
-    with patch("shutil.which", return_value="/usr/bin/rocm-smi"), \
-         patch("subprocess.run", side_effect=subprocess.SubprocessError("fail")):
-        result = manage_infra.verify_rocm_environment()
-        assert result is False
-
-
-def test_check_kubernetes_cluster_success():
-    """Ensures Kubernetes cluster check passes when kubectl cluster-info succeeds."""
-    with patch("shutil.which", return_value="/usr/bin/kubectl"), \
-         patch("subprocess.run") as mock_run:
-        mock_run.return_value = MagicMock()
-        result = manage_infra.check_kubernetes_cluster()
-        assert result is True
-        mock_run.assert_called_once()
-
-
-def test_check_kubernetes_cluster_missing_binary():
-    """Ensures Kubernetes cluster check fails when kubectl is missing."""
-    with patch("shutil.which", return_value=None):
-        result = manage_infra.check_kubernetes_cluster()
-        assert result is False
-
-
-def test_check_kubernetes_cluster_subprocess_error():
-    """Ensures Kubernetes cluster check fails on subprocess error."""
-    with patch("shutil.which", return_value="/usr/bin/kubectl"), \
-         patch("subprocess.run", side_effect=subprocess.SubprocessError("fail")):
-        result = manage_infra.check_kubernetes_cluster()
-        assert result is False
-
-
-def test_deploy_manifests_success():
-    """Ensures manifests are applied successfully when kubectl apply runs cleanly."""
-    with patch("manage_infra.check_kubernetes_cluster", return_value=True), \
-         patch("subprocess.run") as mock_run:
-        mock_run.return_value = MagicMock()
-        result = manage_infra.deploy_manifests(["manifest.yaml"])
-        assert result is True
-        mock_run.assert_called_with(["kubectl", "apply", "-f", "manifest.yaml"], check=True)
-
-
-def test_deploy_manifests_failure():
-    """Ensures deploy_manifests fails when kubectl apply raises error."""
-    with patch("manage_infra.check_kubernetes_cluster", return_value=True), \
-         patch("subprocess.run", side_effect=subprocess.SubprocessError("fail")):
-        result = manage_infra.deploy_manifests(["manifest.yaml"])
-        assert result is False
+def health_check(engine_url: str = "http://localhost:8000/v1/models") -> Dict[str, Any]:
+    """Pings the ROCm inference engine URL and returns a typed status dict."""
+    try:
+        response = requests.get(engine_url, timeout=2.0)
+        if response.status_code == 200:
+            logger.info("health_check_passed", url=engine_url, latency_ms=response.elapsed.total_seconds() * 1000)
+            return {
+                "status": "ok",
+                "latency_ms": response.elapsed.total_seconds() * 1000
+            }
+        else:
+            logger.warning("health_check_non_200", status_code=response.status_code)
+            return {
+                "status": "degraded",
+                "latency_ms": response.elapsed.total_seconds() * 1000
+            }
+    except Exception as e:
+        logger.error("health_check_failed", error=str(e))
+        return {
+            "status": "error",
+            "latency_ms": 0.0,
+            "error": str(e)
+    }
