@@ -45,6 +45,19 @@ class LemonadeRouterBuilder:
         self.model_name = os.environ.get("ROCM_MODEL_NAME", "Qwen3-Coder-30B-A3B-Instruct")
         self.tools: List[Dict[str, Any]] = []
         self.tool_registry: Dict[str, Callable] = {}
+        self.experiment_config = self._load_experiment_config()
+
+    def _load_experiment_config(self) -> Dict[str, Any]:
+        """Loads experiment configuration parameters for router execution."""
+        try:
+            if os.path.exists("experiment_config.json"):
+                with open("experiment_config.json", "r") as f:
+                    config = json.load(f)
+                    logger.info("experiment_config_loaded", path="experiment_config.json")
+                    return config
+        except Exception as e:
+            logger.error("experiment_config_load_failed", error=str(e))
+        return {}
 
     def register_tool(self, tool_data: Dict[str, Any], func: Callable) -> None:
         """Registers a structural tool routing capability execution pipeline step with schema validation."""
@@ -65,10 +78,14 @@ class LemonadeRouterBuilder:
             logger.error("tool_registration_failed", error=str(e))
             raise
 
-    def route_and_execute(self, user_prompt: str, temperature: float = 0.7) -> dict:
-        """Dynamically evaluates instruction bounds to route target capabilities handles."""
+    def route_and_execute(self, user_prompt: str, temperature: Optional[float] = None) -> dict:
+        """Dynamically evaluates instruction bounds to route target capabilities handles using config defaults."""
+        model_params = self.experiment_config.get("model_parameters", {})
+        default_temp = model_params.get("temperature", 0.7)
+        resolved_temp = temperature if temperature is not None else default_temp
+
         try:
-            request = RouteRequest(prompt=user_prompt, temperature=temperature)
+            request = RouteRequest(prompt=user_prompt, temperature=resolved_temp)
         except ValidationError as e:
             logger.error("route_request_invalid", error=str(e))
             return {"status": "error", "result": f"Invalid route request: {str(e)}"}
