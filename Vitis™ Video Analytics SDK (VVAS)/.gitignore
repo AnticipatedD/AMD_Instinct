@@ -1,0 +1,48 @@
+# Meson / Ninja build artifacts
+**/build/
+builddir/
+_build/
+.cache/
+
+# Install staging tree
+/install/
+
+# Compiled objects and libraries
+*.o
+*.so
+*.so.*
+*.a
+*.la
+*.lo
+
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+
+# Editor / IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Backup and patch artifacts
+*.orig
+*.rej
+
+# Tarballs
+*.tar.gz
+*.tar.xz
+*.tar.bz2
+
+#Compile commands
+compile_commands.json
+
+# Generated meson.cross files (from meson.cross.template)
+**/meson.cross
+!**/meson.cross.template
